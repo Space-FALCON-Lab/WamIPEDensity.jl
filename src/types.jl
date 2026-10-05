@@ -160,7 +160,9 @@ const _GEOS_GRID_CACHE_LOCK  = ReentrantLock()
 const _MAX_GEOS_GRID_CACHE   = 4
 
 # Time-bucket file-pair cache (single source of truth).
-const _TIME_BUCKET_CACHE = Dict{DateTime, Tuple{String,String}}()
+# Include source configuration so WFS/WRS (or different buckets) cannot
+# reuse one another's files at the same timestamp.
+const _TIME_BUCKET_CACHE = Dict{Tuple{String,String,String,String,DateTime}, Tuple{String,String}}()
 const _TIME_BUCKET_LOCK  = ReentrantLock()
 
 # Per-3-hour GEOS-FP altitude-bound cache lock.
@@ -177,3 +179,58 @@ const _MSIS_INITIALIZED   = Ref(false)
 
 # Download concurrency settings.
 const _DOWNLOAD_CONCURRENCY = Ref(_DEFAULT_DOWNLOAD_CONCURRENCY)
+
+"""
+    NRLMSISEOnlyInterpolator(; latitude, longitude, date, solar_flux=135.0,
+                             geomag_index=15.0, min_alt_km=-5.0)
+
+A density interpolator that uses **only** NRLMSISE-00, bypassing WAM-IPE and GEOS-FP.
+Designed for historical dates before the WAM-IPE archive began (2023-03).
+The supplied solar flux is used for both daily and mean F10.7. Queries below
+`min_alt_km` return zero; other altitudes are clamped to `min_alt_km`-1000 km. Model
+errors propagate instead of silently returning zero density.
+
+# Use cases
+- Historical re-entry simulations (e.g. LOFTID, Nov 10 2022)
+- Testing / offline mode when GTM data is unavailable
+- Environments where only MSIS is needed
+
+# Example
+```julia
+using WamIPEDensity
+model = NRLMSISEOnlyInterpolator(;
+    latitude=45.0,
+    longitude=-120.0,
+    date=DateTime("2022-11-10T12:00:00"),
+    solar_flux=130.0,
+    geomag_index=10.0,
+)
+ρ = get_density(model, 150_000.0, 45.0, -120.0, DateTime("2022-11-10T12:00:00"))
+```
+"""
+mutable struct NRLMSISEOnlyInterpolator
+    latitude::Float64
+    longitude::Float64
+    date::DateTime
+    solar_flux::Float64
+    geomag_index::Float64
+    min_alt_km::Float64
+end
+
+function NRLMSISEOnlyInterpolator(;
+    latitude::Real,
+    longitude::Real,
+    date::DateTime,
+    solar_flux::Real=135.0,
+    geomag_index::Real=15.0,
+    min_alt_km::Real=-5.0,
+)
+    NRLMSISEOnlyInterpolator(
+        Float64(latitude),
+        Float64(longitude),
+        date,
+        Float64(solar_flux),
+        Float64(geomag_index),
+        Float64(min_alt_km),
+    )
+end

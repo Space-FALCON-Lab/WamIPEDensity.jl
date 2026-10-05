@@ -22,6 +22,12 @@ jobs:
         with:
           version: "1.11"
       - uses: julia-actions/cache@v2
+      # The checked-in docs manifest was generated with Julia 1.12. Loading
+      # it under 1.11 can prevent Pkg itself from loading (MbedTLS_jll).
+      # Resolve from docs/Project.toml for this runner; retain the historical
+      # manifest in Git rather than rewriting it from CI.
+      - name: Prepare a Julia-compatible documentation environment
+        run: rm docs/Manifest.toml
       - name: Install documentation dependencies
         run: julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build documentation

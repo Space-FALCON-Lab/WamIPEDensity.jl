@@ -305,7 +305,8 @@ end
     end
 
     try
-        raw = meta.ds[meta.varname][idx...]
+        # Read packed values: _decode_value applies CF scaling exactly once.
+        raw = meta.ds[meta.varname].var[idx...]
         v = Array{Float64}(undef, 2, 2, 2)
         lon_dim = meta.dim_map[:lon]; lat_dim = meta.dim_map[:lat]; z_dim = meta.dim_map[:z]
 

@@ -5,6 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### PR6 integration repair
+- Connect the existing modules from the package entry point so the modular
+  refactor is actually loaded; preserve the MSIS-only interface through the
+  installed Julia atmospheric-model dependency instead of an unavailable
+  native symbol.
+- Decode packed NetCDF density values exactly once in point and profile
+  queries. Preserve profile altitude units and the singleton time dimension.
+- Keep WFS and WRS file pairs separate in the cache at the same timestamp.
+- Honour radians/degrees in the newly connected MSIS and hybrid trajectory
+  wrappers and retain the American-spelled trajectory alias.
+- Correct the test environment's Printf UUID and add strict Julia 1.11/1.12
+  precompilation, offline interface, and generated archive-fixture tests.
+  Live archive campaigns remain available by explicit manual request.
+
 ### Fixed
 - **`meta.fill_values` typo**. `_decode_value` referenced `meta.fillvals`
   (non-existent field). The resulting `FieldError` was silently swallowed by an

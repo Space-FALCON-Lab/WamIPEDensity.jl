@@ -2,27 +2,10 @@ using Test
 using Dates
 using WamIPEDensity
 
-# Offline-only test file. This is the strict CI gate - it must pass cleanly
-# without any network access (no S3, no NASA portal) beyond the initial
-# SpaceIndices download, which is handled transparently and degrades
-# gracefully if a fresh fetch fails.
-#
-# What this file covers:
-#   1. Module loads and exports the documented public symbols.
-#   2. All four interpolators can be constructed with their default kwargs.
-#   3. NRLMSISEInterpolator has ONLY the three documented fields, with no
-#      leftover space_indices_initialized - a regression guard for the move
-#      to the module-level _MSIS_INITIALIZED / _MSIS_INIT_LOCK guard.
-#   4. get_density on the empirical MSIS backend returns finite, positive
-#      density at 90 km (within the default 0-100 km window).
-#   5. get_density on a widened-bounds MSIS interpolator returns finite,
-#      positive density at 400 km - the Task 2.2 runtime smoke guard.
-#   6. Argument validation rejects bad inputs (invalid interpolation mode,
-#      out-of-bounds latitude, non-finite inputs, negative altitude).
-#   7. clean_cache! is callable with the new cache_max_bytes kwarg and does
-#      not throw on a non-existent directory.
-#   8. The density() convenience wrapper routes to a default hybrid backend
-#      and returns a finite density.
+# Strict, deterministic tests use synthetic space weather and cached GEOS
+# bounds. Live downloads and scientific archive campaigns are separate tests.
+include("offline_indices.jl")
+load_offline_indices!()
 
 @testset "WamIPEDensity.jl offline checks" begin
 
@@ -83,8 +66,7 @@ end
 # ----------------------------------------------------------------------
 @testset "NRLMSISE single point (default window)" begin
 # ----------------------------------------------------------------------
-    # 90 km is inside the default 0-100 km MSIS window and needs no network
-    # beyond SpaceIndices.init() on the very first call.
+    # 90 km is inside the default window; space weather is the local fixture.
     itp = NRLMSISEInterpolator()
     dt  = DateTime(2024, 5, 15, 12, 0, 0)
 
@@ -171,6 +153,7 @@ end
     # backend route to NRLMSISE (no S3), so this is offline-safe.
     dt = DateTime(2024, 5, 15, 12, 0, 0)
 
+    WamIPEDensity._get_default_itp().geos_bounds_cache[WamIPEDensity._datetime_floor_3hr(dt)] = (0.0, 70.0)
     den = density(dt, 45.0, -75.0, 90.0; alt_unit=:km, angles_in=:deg)
     @test isfinite(den)
     @test den > 0
@@ -207,7 +190,7 @@ end
     # Verified against S3: folder 00Z has files valid at 00:00-14:50+,
     # folder 06Z from 06:00, folder 12Z from 12:00, folder 18Z from 18:00.
     # Routing must floor to the latest cycle at or before the query time
-    # (shortest forecast lead = closest to assimilated truth).
+    # (avoids requesting a valid time from a future cycle folder).
     archive = WamIPEDensity._wfs_archive
     @test hour(archive(DateTime(2025,6,6, 0,0)))  == 0
     @test hour(archive(DateTime(2025,6,6, 3,0)))  == 0   # was 06Z before fix -> NaN on S3

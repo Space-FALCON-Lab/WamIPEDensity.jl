@@ -79,7 +79,9 @@ function get_density_batch(itp::HybridDensityInterpolator,
 end
 
 get_density_trajectory(itp::HybridDensityInterpolator, dts, lats, lons, alts_m; angles_in_deg=false) =
-    get_density_batch(itp, dts, lats, lons, Float64.(alts_m) .* 1e-3)
+    get_density_batch(itp, dts,
+        (angles_in_deg ? Float64.(lats) : rad2deg.(Float64.(lats))),
+        (angles_in_deg ? Float64.(lons) : rad2deg.(Float64.(lons))), Float64.(alts_m) .* 1e-3)
 
 get_density_trajectory_optimised(itp::HybridDensityInterpolator, dts, lats, lons, alts_m; angles_in_deg=false) =
     get_density_trajectory(itp, dts, lats, lons, alts_m; angles_in_deg=angles_in_deg)

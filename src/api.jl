@@ -82,3 +82,7 @@ get_density_batch_optimized(args...; kwargs...) = get_density_batch(args...; kwa
 earlier versions and may gain real parallelism in a future release.
 """
 get_density_batch_parallel(args...; kwargs...)    = get_density_batch(args...; kwargs...)
+
+# American spelling retained alongside the documented British form.
+get_density_trajectory_optimized(args...; kwargs...) =
+    get_density_trajectory_optimised(args...; kwargs...)

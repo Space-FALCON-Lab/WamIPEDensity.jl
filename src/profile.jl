@@ -100,8 +100,9 @@ function _wam_load_grids(ds::NCDataset, varname::String;
         t   = haskey(ds, tname)   ? _coord_floats(ds, tname)   :
                                         [file_time === nothing ? 0.0 : Float64(Dates.value(file_time))]
         perm = (idx_lon, idx_lat, idx_z, idx_tim)
-        Vraw = perm == (1,2,3,4) ? Array(v) : Array(PermutedDimsArray(Array(v), perm))
+        Vraw = perm == (1,2,3,4) ? Array(v.var) : Array(PermutedDimsArray(Array(v.var), perm))
         V = _cf_decode!(Vraw, v)
+        z = _load_grid_metadata(ds, varname).z
         return lat, lon, z, t, V, (latname, lonname, zname, tname)
     else
         idx_lon = findfirst(==(:lon), roles)
@@ -116,9 +117,10 @@ function _wam_load_grids(ds::NCDataset, varname::String;
                                         collect(Float64, 1.0:1.0:float(size(v, idx_z)))
         t   = [file_time === nothing ? 0.0 : Float64(Dates.value(file_time))]
         perm = (idx_lon, idx_lat, idx_z)
-        Vraw = perm == (1,2,3) ? Array(v) : Array(PermutedDimsArray(Array(v), perm))
+        Vraw = perm == (1,2,3) ? Array(v.var) : Array(PermutedDimsArray(Array(v.var), perm))
         V    = reshape(Vraw, size(Vraw,1), size(Vraw,2), size(Vraw,3), 1)
-        V = _cf_decode!(Vraw, v)
+        V = _cf_decode!(V, v)
+        z = _load_grid_metadata(ds, varname).z
         return lat, lon, z, t, V, (latname, lonname, zname, "time")
     end
 end

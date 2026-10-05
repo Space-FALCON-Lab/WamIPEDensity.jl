@@ -67,7 +67,8 @@ end
 
 get_density_trajectory(itp::NRLMSISEInterpolator, dts, lats, lons, alts_m; angles_in_deg=false) =
     get_density_batch(itp, dts,
-        Float64.(lats), Float64.(lons), Float64.(alts_m) .* 1e-3)
+        (angles_in_deg ? Float64.(lats) : rad2deg.(Float64.(lats))),
+        (angles_in_deg ? Float64.(lons) : rad2deg.(Float64.(lons))), Float64.(alts_m) .* 1e-3)
 
 get_density_trajectory_optimised(itp::NRLMSISEInterpolator, dts, lats, lons, alts_m; angles_in_deg=false) =
     get_density_trajectory(itp, dts, lats, lons, alts_m; angles_in_deg=angles_in_deg)
@@ -104,4 +105,34 @@ exists for API completeness and returns `0` unconditionally.
 function prewarm_cache!(itp::NRLMSISEInterpolator, dts::AbstractVector{<:DateTime})
     _init_msis_indices!(itp)
     return 0
+end
+
+"""
+    nrlmsise00(alt_km, lat, lon, time, f107, ap)
+
+Density in kg/m^3 from the installed Julia NRLMSISE-00 model, with altitude
+in kilometres and angles in degrees. The supplied solar flux is used for
+both daily and mean F10.7. No space-index download is needed.
+"""
+function nrlmsise00(alt_km::Real, lat::Real, lon::Real, time::DateTime,
+                   f107::Real, ap::Real)
+    isfinite(alt_km) || throw(ArgumentError("altitude must be finite"))
+    isfinite(lat) && -90 <= lat <= 90 || throw(ArgumentError("latitude must be in [-90, 90]"))
+    isfinite(lon) || throw(ArgumentError("longitude must be finite"))
+    isfinite(f107) && f107 > 0 || throw(ArgumentError("solar flux must be positive and finite"))
+    isfinite(ap) && ap >= 0 || throw(ArgumentError("Ap must be nonnegative and finite"))
+    out = SatelliteToolboxAtmosphericModels.AtmosphericModels.nrlmsise00(
+        time, Float64(alt_km) * 1000, deg2rad(Float64(lat)), deg2rad(Float64(lon)),
+        Float64(f107), Float64(f107), Float64(ap))
+    return Float64(out.total_density)
+end
+
+function get_density(interp::NRLMSISEOnlyInterpolator, altitude_m::Real,
+                     lat::Real, lon::Real, time::DateTime)
+    alt_km = Float64(altitude_m) / 1000
+    isfinite(alt_km) || throw(ArgumentError("altitude must be finite"))
+    alt_km < interp.min_alt_km && return 0.0
+    # Preserve the existing configured floor and 1000 km ceiling.
+    alt_km = clamp(alt_km, interp.min_alt_km, 1000.0)
+    return nrlmsise00(alt_km, lat, lon, time, interp.solar_flux, interp.geomag_index)
 end

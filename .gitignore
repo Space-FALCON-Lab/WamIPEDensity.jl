@@ -3,3 +3,7 @@ cache
 docs/build/
 plots
 tests.jl
+
+# Resolved local test environments and runtime caches.
+/test/Manifest*.toml
+/cache_geosfp/
