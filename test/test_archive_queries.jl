@@ -105,9 +105,9 @@ end
                     archive_fixture(path; packed=true, permuted=true, fourdim=fourdim,
                                     height_units="m", density_factor=Float64(i))
                 end
-                WAM_ARCHIVE._cache_file_pair(dt, (paths[1], paths[2]))
+                itp = WAMInterpolator()
+                WAM_ARCHIVE._cache_file_pair(itp, dt, (paths[1], paths[2]))
                 try
-                    itp = WAMInterpolator()
                     expected = 3.075e-12
                     @test get_density(itp, dt, 0.0, 180.0, 450.0) ≈ expected rtol=1e-12
                     @test get_density_at_point(itp, dt, 0.0, pi, 450000.0) ≈ expected rtol=1e-12
@@ -117,6 +117,18 @@ end
                     heights, profile = mean_density_profile(itp, dt)
                     @test heights == [400.0, 500.0]
                     @test profile ≈ [2.775e-12, 3.375e-12] rtol=1e-12
+
+                    # The same timestamp can legitimately have different WFS
+                    # and WRS files. One product must not reuse the other's pair.
+                    wrs_paths = replace.(paths, "wfs" => "wrs")
+                    for (i, path) in enumerate(wrs_paths)
+                        archive_fixture(path; packed=true, permuted=true, fourdim=fourdim,
+                                        height_units="m", density_factor=2.0 * i)
+                    end
+                    wrs = WAMInterpolator(product="wrs")
+                    WAM_ARCHIVE._cache_file_pair(wrs, dt, (wrs_paths[1], wrs_paths[2]))
+                    @test get_density(wrs, dt, 0.0, 180.0, 450.0) ≈ 2expected rtol=1e-12
+                    @test get_density(itp, dt, 0.0, 180.0, 450.0) ≈ expected rtol=1e-12
                 finally
                     WAM_ARCHIVE.clear_nc_pool!()
                     WAM_ARCHIVE.clear_grid_cache!()

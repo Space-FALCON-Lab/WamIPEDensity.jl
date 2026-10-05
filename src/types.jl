@@ -160,7 +160,9 @@ const _GEOS_GRID_CACHE_LOCK  = ReentrantLock()
 const _MAX_GEOS_GRID_CACHE   = 4
 
 # Time-bucket file-pair cache (single source of truth).
-const _TIME_BUCKET_CACHE = Dict{DateTime, Tuple{String,String}}()
+# Include source configuration so WFS/WRS (or different buckets) cannot
+# reuse one another's files at the same timestamp.
+const _TIME_BUCKET_CACHE = Dict{Tuple{String,String,String,String,DateTime}, Tuple{String,String}}()
 const _TIME_BUCKET_LOCK  = ReentrantLock()
 
 # Per-3-hour GEOS-FP altitude-bound cache lock.

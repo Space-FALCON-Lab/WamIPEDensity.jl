@@ -12,6 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/).
   native symbol.
 - Decode packed NetCDF density values exactly once in point and profile
   queries. Preserve profile altitude units and the singleton time dimension.
+- Keep WFS and WRS file pairs separate in the cache at the same timestamp.
 - Honour radians/degrees in the newly connected MSIS and hybrid trajectory
   wrappers and retain the American-spelled trajectory alias.
 - Correct the test environment's Printf UUID and add strict Julia 1.11/1.12

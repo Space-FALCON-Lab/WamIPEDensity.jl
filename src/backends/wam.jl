@@ -11,7 +11,7 @@ end
 
 function _get_two_files_exact(itp::WAMInterpolator, dt::DateTime)
     bucket = _datetime_floor_10min(dt)
-    if (cached_pair = _get_cached_file_pair(bucket)) !== nothing
+    if (cached_pair = _get_cached_file_pair(itp, bucket)) !== nothing
         p_lo, p_hi = cached_pair
         isfile(p_lo) && isfile(p_hi) || @goto refresh
         prod_lo = occursin("wfs", p_lo) ? "wfs" : "wrs"
@@ -81,7 +81,7 @@ function _get_two_files_exact(itp::WAMInterpolator, dt::DateTime)
     end
 
     pair = (p_lo, p_hi)
-    _cache_file_pair(dt, pair)
+    _cache_file_pair(itp, dt, pair)
     return (p_lo, p_hi, prod_lo, prod_hi)
 end
 

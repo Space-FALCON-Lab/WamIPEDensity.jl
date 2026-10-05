@@ -91,21 +91,24 @@ end
 # Time-bucket pair cache - single source of truth
 # --------------------------------------------------------------------------
 
+_file_pair_key(itp::WAMInterpolator, dt::DateTime) =
+    (itp.bucket, itp.root_prefix, itp.product, itp.region, _datetime_floor_10min(dt))
+
 """
-    _get_cached_file_pair(dt) -> Union{Tuple{String,String}, Nothing}
+    _get_cached_file_pair(itp, dt) -> Union{Tuple{String,String}, Nothing}
 """
-function _get_cached_file_pair(dt::DateTime)
+function _get_cached_file_pair(itp::WAMInterpolator, dt::DateTime)
     lock(_TIME_BUCKET_LOCK) do
-        return get(_TIME_BUCKET_CACHE, _datetime_floor_10min(dt), nothing)
+        return get(_TIME_BUCKET_CACHE, _file_pair_key(itp, dt), nothing)
     end
 end
 
 """
-    _cache_file_pair(dt, pair)
+    _cache_file_pair(itp, dt, pair)
 """
-function _cache_file_pair(dt::DateTime, pair::Tuple{String,String})
+function _cache_file_pair(itp::WAMInterpolator, dt::DateTime, pair::Tuple{String,String})
     lock(_TIME_BUCKET_LOCK) do
-        _TIME_BUCKET_CACHE[_datetime_floor_10min(dt)] = pair
+        _TIME_BUCKET_CACHE[_file_pair_key(itp, dt)] = pair
     end
 end
 
