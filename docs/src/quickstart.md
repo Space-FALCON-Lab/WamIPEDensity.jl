@@ -21,6 +21,16 @@ For a local development checkout, run the clone commands above. From another
 Julia project, use `Pkg.develop(path="/path/to/WamIPEDensity.jl")` with that
 `develop` checkout. Point and batch queries below download NOAA data as needed.
 
+From the checkout, start Julia with its project active before running the query
+examples:
+
+```sh
+julia --project=.
+```
+
+If you added the package to another project, run that command from that project's
+directory instead. Keep using this Julia session for the query examples.
+
 ## Point density query
 
 Use `WAMInterpolator` to choose the WAM-IPE product, variable, and interpolation method. `wfs` is the forecast stream and `wrs` is the real-time nowcast stream.

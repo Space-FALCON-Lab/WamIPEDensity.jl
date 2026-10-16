@@ -2,7 +2,10 @@
 
 The following examples are the independent `WFS` workflows you can run directly. They are useful when you want ionosphere variables, sample dumps, or all-product reports without going through a full SpaceAGORA simulation.
 
-These examples assume the higher-level `WFS` package is available in the active Julia environment. They use a `cache` folder beside the working directory.
+These tools require a separate installation of the higher-level `WFS` package
+and its environment. Installing WamIPEDensity does not install `WFS`. Run the
+examples only after activating that separate environment, with `WFS` available.
+They use a `cache` folder beside the working directory.
 
 ## Ion temperature from forecast data
 
@@ -102,4 +105,5 @@ WFS.get_value(itp, dt, lon_deg, lat_deg, alt_km)
 get_density(itp, dt, lat_deg, lon_deg, alt_km)
 ```
 
-Keep that distinction visible when moving snippets between standalone WFS scripts and the density-only SpaceAGORA adapter.
+Keep that distinction visible when moving snippets between standalone WFS scripts
+and WamIPEDensity queries.

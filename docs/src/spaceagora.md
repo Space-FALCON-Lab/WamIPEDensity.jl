@@ -28,5 +28,6 @@ WAM-IPE density queries return neutral mass density in kg/m³. They do not suppl
 a complete atmosphere state for a force model: temperature, wind and any other
 required quantities need an explicit model choice in a future integration.
 
-For separate WFS ionosphere-variable queries, see [WFS Workflows](wfs-workflows.md).
-Those programs are independent of a SpaceAGORA atmosphere adapter.
+For separate WFS ionosphere-variable tools, see [WFS Workflows](wfs-workflows.md).
+They require their own installation and environment; installing WamIPEDensity
+does not install `WFS`. They are independent of a SpaceAGORA atmosphere adapter.

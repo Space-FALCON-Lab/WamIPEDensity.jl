@@ -32,7 +32,7 @@ rho = get_density(itp, dt, -33.4, -153.24, 400.0)
 ## Pages
 
 - [Quick Start](quickstart.md): installation and standalone examples.
-- [WFS Workflows](wfs-workflows.md): the independent `WFS.get_value`, `dump_sample`, and `dump_all` programs.
+- [WFS Workflows](wfs-workflows.md): independent `WFS` tools that require a separate installation.
 - [How It Works](how-it-works.md): cache, file selection, interpolation, and trajectory flow.
 - [SpaceAGORA Status](spaceagora.md): standalone queries alongside a simulation.
 - [API Reference](api.md): generated reference for public functions and types.
