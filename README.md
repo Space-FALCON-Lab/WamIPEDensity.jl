@@ -1,40 +1,32 @@
-﻿# WamIPEDensity.jl
+# WamIPEDensity.jl
 
-## Overview
+**The maintained implementation is on [`develop`](https://github.com/Space-FALCON-Lab/WamIPEDensity.jl/tree/develop).**
+This `main` branch preserves the historical 0.9.5 source and does not contain the
+October 2026 fixes. Use the lab repository's `develop` branch for installation
+and new work; the two branches have separate histories.
 
-**WamIPEDensity.jl** provides access to **density-only data** from the [WamIPE dataset](https://registry.opendata.aws/noaa-wam-ipe/), hosted on Amazon S3.  
-
-- It is designed as the minimal “core” package, concentrating exclusively on density data.  
-- A future umbrella package (`WamIPE.jl`) will integrate both live and forecast data streams.
-
-Developed as part of the [SpaceAGORA project](https://github.com/Space-FALCON-Lab/SpaceAGORA.jl) by [Space Falcon Lab](https://www.spacefalconlab.com/).
-
----
-
-## To Do:
-- [x] Get accurate density data from NOAA using Amazon s3 bucket
-- [x] Figure out how to integrate this within SpaceAGORA 
-- [x] Finish writing up Docstrings for Julia to understand
-- [x] Create documentation using `documntation.jl`
-- [x] Register package in Julia General registry.
-- [x] Provide umbrella package `WamIPE.jl` (live + forecast).
-
----
+WamIPEDensity.jl provides Julia access to NOAA WAM-IPE neutral-density data.
+See the [maintained documentation sources](https://github.com/Space-FALCON-Lab/WamIPEDensity.jl/tree/develop/docs/src)
+for the current API and standalone query examples.
 
 ## Installation
 
-For now, the package isn’t registered in Julia’s General registry.  
-You can install it directly from GitHub:
+Use Julia 1.11 or 1.12 and the maintained `develop` branch of the lab repository:
+
+```sh
+git clone --branch develop https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git
+cd WamIPEDensity.jl
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+```
+
+To add the maintained package to an existing Julia project instead:
 
 ```julia
-git clone https://github.com/Bourbon8464/WamIPEDensity.jl
-cd WamIPEDensity
-julia
-]
-activate .
-instanstiate
+using Pkg
+Pkg.add(url="https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git", rev="develop")
 ```
----
+
+The changelog below describes this historical branch.
 
 ## Changelog:
 ### Updates to Structure and Exports:
