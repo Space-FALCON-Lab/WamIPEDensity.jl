@@ -9,8 +9,8 @@ should be attempted.
 
 1. **Open an issue first** for any non-trivial change. A short design
    sketch saves time on both sides and keeps the public API stable.
-2. **Fork and branch** from `main`. Keep the branch focused on a single
-   concern - if you've fixed a typo and refactored the cache layer in the
+2. **Fork and branch** from the lab repository's maintained `develop` branch.
+   Keep the branch focused on a single concern - if you've fixed a typo and refactored the cache layer in the
    same branch, please split the two into separate PRs.
 3. **Run the offline tests** before pushing (see
    [Testing](testing.md#Commands) for the exact commands). The offline
@@ -57,10 +57,10 @@ test/
   test_offline.jl            # Curated offline-only checks (the CI gate)
   Project.toml               # Test-only deps
 docs/
-  make.jl                    # Documenter build + deploy script
+  make.jl                    # Documenter build script; publication is not configured
   src/*.md                    # Markdown source for the docs site
 .github/workflows/
-  docs.yml                    # Builds and deploys the docs site (gh-pages)
+  docs.yml                    # Builds docs without publishing
   test.yml                    # Runs the offline + full test suites
   TagBot.yml                  # Julia registry tag automation
 ```

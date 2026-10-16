@@ -11,10 +11,11 @@ DocMeta.setdocmeta!(
 makedocs(
     sitename="WamIPEDensity.jl",
     modules=[WamIPEDensity],
+    repo=Documenter.Remotes.GitHub("Space-FALCON-Lab", "WamIPEDensity.jl"),
     checkdocs=:none,
     format=Documenter.HTML(
-        canonical="https://bourbon8464.github.io/WamIPEDensity.jl/stable/",
-        edit_link="main",
+        # Set a canonical URL only after the lab Pages destination is selected.
+        edit_link="develop",
         assets=["assets/custom.css"],
         prettyurls=get(ENV, "CI", "false") == "true",
     ),
@@ -23,13 +24,9 @@ makedocs(
         "Quick Start" => "quickstart.md",
         "WFS Workflows" => "wfs-workflows.md",
         "How It Works" => "how-it-works.md",
-        "SpaceAGORA Integration" => "spaceagora.md",
+        "SpaceAGORA Status" => "spaceagora.md",
         "API Reference" => "api.md",
     ],
 )
 
-deploydocs(
-    repo="github.com/Bourbon8464/WamIPEDensity.jl.git",
-    devbranch="main",
-    push_preview=true,
-)
+# Build only. Publishing requires a separate, explicit lab Pages destination.

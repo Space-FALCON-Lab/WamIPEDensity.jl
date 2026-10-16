@@ -1,44 +1,38 @@
-﻿# WamIPEDensity.jl
+# WamIPEDensity.jl
 
-## Overview
+WamIPEDensity.jl provides Julia access to NOAA WAM-IPE neutral-density data,
+including point, batch and trajectory queries. It also exposes GEOS-FP, MSIS and
+hybrid model interfaces.
 
-**WamIPEDensity.jl** provides access to **density-only data** from the [WamIPE dataset](https://registry.opendata.aws/noaa-wam-ipe/), hosted on Amazon S3.  
+**`develop` is the maintained branch of the [Space Falcon Lab repository](https://github.com/Space-FALCON-Lab/WamIPEDensity.jl).**
+The default `main` branch preserves historical 0.9.5 source on a separate
+history and does not contain the October 2026 fixes. Base new work on `develop`.
 
-- It is designed as the minimal “core” package, concentrating exclusively on density data.  
-- A future umbrella package (`WamIPE.jl`) will integrate both live and forecast data streams.
-
-Developed as part of the [SpaceAGORA project](https://github.com/Space-FALCON-Lab/SpaceAGORA.jl) by [Space Falcon Lab](https://www.spacefalconlab.com/).
-
----
-
-## To Do:
-- [x] Get accurate density data from NOAA using Amazon s3 bucket
-- [x] Figure out how to integrate this within SpaceAGORA 
-- [x] Finish writing up Docstrings for Julia to understand
-- [x] Create documentation using `documntation.jl`
-- [x] Register package in Julia General registry.
-- [x] Provide umbrella package `WamIPE.jl` (live + forecast).
-
----
+Use the [Quick Start](docs/src/quickstart.md) for standalone queries. The
+[SpaceAGORA status page](docs/src/spaceagora.md) explains how to use these queries
+alongside a simulation; a built-in SpaceAGORA adapter is not currently available.
 
 ## Installation
 
-For now, the package isn’t registered in Julia’s General registry.  
-You can install it directly from GitHub:
+Use Julia 1.11 or 1.12 and the maintained `develop` branch of the lab repository:
+
+```sh
+git clone --branch develop https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git
+cd WamIPEDensity.jl
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+```
+
+To add the maintained package to an existing Julia project instead:
 
 ```julia
-git clone https://github.com/Bourbon8464/WamIPEDensity.jl
-cd WamIPEDensity
-julia
-]
-activate .
-instanstiate
+using Pkg
+Pkg.add(url="https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git", rev="develop")
 ```
----
 
 ## Documentation
 
-The documentation site lives in `docs/` and can be built locally with:
+The documentation sources live in `docs/`. From the repository root, build them
+with Julia 1.12, matching the checked-in documentation manifest:
 
 ```julia
 using Pkg
@@ -48,7 +42,10 @@ Pkg.instantiate()
 include("docs/make.jl")
 ```
 
-After building, open `docs/build/index.html`.
+After building, open `docs/build/index.html`. Local and CI builds do not publish
+the site. The lab Pages destination and canonical URL still need to be selected
+before a separate publication change; this repository does not redirect the
+previous personal site.
 
 ---
 
