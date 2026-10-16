@@ -26,6 +26,16 @@ using Pkg
 Pkg.add(url="https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git", rev="develop")
 ```
 
+From the checkout, start Julia with its project active before running the query
+examples:
+
+```sh
+julia --project=.
+```
+
+If you added the package to another project, run that command from that project's
+directory instead. Keep using this Julia session for the query examples.
+
 The changelog below describes this historical branch.
 
 ## Changelog:
