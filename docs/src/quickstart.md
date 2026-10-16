@@ -2,20 +2,34 @@
 
 ## Installation
 
-From a local checkout:
+Use Julia 1.11 or 1.12 and the maintained `develop` branch of the lab repository:
+
+```sh
+git clone --branch develop https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git
+cd WamIPEDensity.jl
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+```
+
+To add the maintained package to an existing Julia project instead:
 
 ```julia
 using Pkg
-Pkg.activate(".")
-Pkg.instantiate()
+Pkg.add(url="https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git", rev="develop")
 ```
 
-For development from another Julia project:
+For a local development checkout, run the clone commands above. From another
+Julia project, use `Pkg.develop(path="/path/to/WamIPEDensity.jl")` with that
+`develop` checkout. Point and batch queries below download NOAA data as needed.
 
-```julia
-using Pkg
-Pkg.develop(path="/path/to/WamIPEDensity.jl")
+From the checkout, start Julia with its project active before running the query
+examples:
+
+```sh
+julia --project=.
 ```
+
+If you added the package to another project, run that command from that project's
+directory instead. Keep using this Julia session for the query examples.
 
 ## Point density query
 

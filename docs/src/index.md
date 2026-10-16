@@ -2,10 +2,12 @@
 
 `WamIPEDensity.jl` is the density-focused WAM-IPE access layer used by Space Falcon Lab tooling. It downloads NOAA WAM-IPE NetCDF products, keeps them in a local cache, interpolates them in space and time, and exposes a small Julia API for point, batch, and trajectory density queries.
 
-The package is designed to be useful in two ways:
-
-- as a standalone data access package for WAM-IPE neutral density;
-- as a SpaceAGORA atmosphere backend through `SpaceAGORA.WAMIPEDensityAtmosphereModel`.
+Use the maintained `develop` branch of the
+[lab repository](https://github.com/Space-FALCON-Lab/WamIPEDensity.jl/tree/develop);
+`main` preserves an older implementation. This package supports standalone
+density queries and explicit data analysis alongside SpaceAGORA runs. A built-in
+SpaceAGORA atmosphere adapter is not currently available; see
+[SpaceAGORA status](spaceagora.md).
 
 The examples below use UTC `DateTime` values, latitude and longitude in degrees, and altitude in kilometres unless noted otherwise.
 
@@ -30,7 +32,7 @@ rho = get_density(itp, dt, -33.4, -153.24, 400.0)
 ## Pages
 
 - [Quick Start](quickstart.md): installation and standalone examples.
-- [WFS Workflows](wfs-workflows.md): the independent `WFS.get_value`, `dump_sample`, and `dump_all` programs.
+- [WFS Workflows](wfs-workflows.md): independent `WFS` tools that require a separate installation.
 - [How It Works](how-it-works.md): cache, file selection, interpolation, and trajectory flow.
-- [SpaceAGORA Integration](spaceagora.md): direct use inside `SpaceAGORA.jl`.
+- [SpaceAGORA Status](spaceagora.md): standalone queries alongside a simulation.
 - [API Reference](api.md): generated reference for public functions and types.

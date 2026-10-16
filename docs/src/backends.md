@@ -214,9 +214,8 @@ rho       = get_density(msis_wide, dt, 45.0, -75.0, 400.0)
 
 This default was a deliberate choice - above ≈100 km the empirical model is
 less reliable than WAM-IPE - but it occasionally surprises users who assume
-`get_density(msis, ..., 400)` will succeed. See
-the Known issues section of the
-[README on GitHub](https://github.com/Bourbon8464/WamIPEDensity.jl#known-issues-and-caveats).
+`get_density(msis, ..., 400)` will succeed. Set the altitude bounds for the
+intended use case explicitly, as in the example above.
 
 ### Module-level `SpaceIndices.init()` guard
 
