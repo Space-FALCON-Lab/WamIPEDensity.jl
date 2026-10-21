@@ -17,10 +17,15 @@ A single `get_density` call follows this path:
 
 `WAMInterpolator(product="wfs")` uses forecast data. `WAMInterpolator(product="wrs")` uses real-time nowcast data. Internally, the package knows the archive/cycle layout for each product and can resolve the exact file names needed for 10-minute WAM-IPE output cadence.
 
-The package also chooses the correct WAM-IPE root version for historical dates:
+The package maps historical timestamps to WAM-IPE version folders:
 
-- `v1.1` from 2023-03-20 21:10:00 through 2023-06-30 21:00:00.
+- `v1.1` from 2023-03-20 21:10:00 through 2023-06-30 21:09:59.
 - `v1.2` from 2023-06-30 21:10:00 onward.
+
+The v1.1/v1.2 boundary is a patched software mapping, not a verified NOAA
+cutover. See the [version caveat](backends.md)
+before using data near that boundary. `root_prefix` does not override this
+timestamp-based selection.
 
 ## Cache layers
 
@@ -29,7 +34,9 @@ There are two cache layers:
 - the on-disk file cache stores downloaded NOAA NetCDF files and a small `metadata.bin` index;
 - the in-process dataset pool keeps recently used NetCDF handles open and evicts least-recently-used unpinned files.
 
-This is why repeated trajectory queries are much faster after the first call: file downloads, grid decoding, and dataset opens are reused where possible.
+Repeated queries reuse downloaded files, decoded grids and open datasets where
+possible. Cache contents do not establish archive completeness or scientific
+validity.
 
 ## Interpolation modes
 

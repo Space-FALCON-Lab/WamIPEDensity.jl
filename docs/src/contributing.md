@@ -1,36 +1,61 @@
 # Contributing
 
-This is an open-source project and fixes on top of the existing code are
-very welcome. This page explains the workflow, what to run before opening a
-pull request, and the items that need maintainer sign-off before they
-should be attempted.
+Start from the maintained `develop` branch. Keep each change focused, explain the
+problem it fixes, and update the relevant examples or API documentation with it.
+For a change to the public API, dependency set or cache/concurrency design, open
+an issue and agree on the approach with a maintainer before implementing it.
 
-## Workflow
+## Prepare a checkout
 
-1. **Open an issue first** for any non-trivial change. A short design
-   sketch saves time on both sides and keeps the public API stable.
-2. **Fork and branch** from the lab repository's maintained `develop` branch.
-   Keep the branch focused on a single concern - if you've fixed a typo and refactored the cache layer in the
-   same branch, please split the two into separate PRs.
-3. **Run the offline tests** before pushing (see
-   [Testing](testing.md#Commands) for the exact commands). The offline
-   file is the strict CI gate; if it fails, CI will fail.
-4. **Run the full test suite** if you have network access. The WAM-IPE and
-   GEOS-FP testsets self-skip without AWS / NASA portal access, so a
-   passing run on your machine with network access is stronger evidence
-   than a blank-passing run on CI.
-5. **Update the documentation** alongside your code change. The docs live
-   in `docs/src/*.md` (markdown) and in the `"""..."""` docstrings above
-   each public function in `src/*.jl`. Documenter renders the docstrings
-   via the `@docs` blocks in `docs/src/api.md`.
-6. **Open the PR** with a short description and a reference to the issue
-   you opened in step 1.
+Use Julia 1.11 or 1.12. From a directory where you keep source checkouts:
+
+```sh
+git clone --branch develop https://github.com/Space-FALCON-Lab/WamIPEDensity.jl.git
+cd WamIPEDensity.jl
+```
+
+Use your fork's URL if you intend to submit a pull request. Run the commands below
+from this repository root; the test and documentation environments are separate.
+
+## Run the strict local checks
+
+```sh
+julia --project=test -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+julia --project=test test/ci.jl
+```
+
+Dependency setup may access package servers. The second command strictly
+precompiles the package and runs the local interface, generated archive and
+offline checks. Any compilation error or failed assertion must be addressed.
+See [Testing](testing.md) for the files and limits of these fixtures.
+
+The live-data campaign is optional and can download substantial NOAA/NASA data:
+
+```sh
+julia --project=test test/runtests.jl
+```
+
+Record skipped cases separately from successful checks. A passing run with
+unavailable-data skips does not demonstrate archive access or scientific validity.
+Use the separate test environment rather than substituting the root environment.
+
+## Build the documentation
+
+Use Julia 1.12 for the checked-in documentation manifest, from the repository root:
+
+```sh
+julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); include("docs/make.jl")'
+```
+
+Open `docs/build/index.html` and check the changed page and its links. Local and CI
+builds do not publish the site. Markdown lives in `docs/src`; the API reference
+renders docstrings from the implementation.
 
 ## Project layout
 
 ```
 src/
-  WamIPEDensity.jl          # Main module. Includes all submodules, exports.
+  WamIPEDensity.jl          # Main module. Includes implementation files and exports the API.
   types.jl                  # Struct definitions: WAMInterpolator, GEOSFPInterpolator,
                             # NRLMSISEInterpolator, HybridDensityInterpolator,
                             # GridMetadata, _FileCache, and all global constants.
@@ -54,129 +79,52 @@ src/
   diagnostics.jl            # GEOS-FP file inspection helpers.
 test/
   runtests.jl                # Full test suite (some testsets need S3 access)
-  test_offline.jl            # Curated offline-only checks (the CI gate)
+  ci.jl                      # Strict precompile plus three local test files
+  test_offline.jl            # Constructors, validation, routing and helpers
   Project.toml               # Test-only deps
 docs/
   make.jl                    # Documenter build script; publication is not configured
   src/*.md                    # Markdown source for the docs site
 .github/workflows/
   docs.yml                    # Builds docs without publishing
-  test.yml                    # Runs the offline + full test suites
+  test.yml                    # Strict local tests; optional manual live campaign
   TagBot.yml                  # Julia registry tag automation
 ```
 
-## Running the tests
+## Preserve the interface and data conventions
 
-See the [Testing](testing.md) page for the exact commands. The short
-version:
+- Keep existing exported names available through a documented deprecation when
+  renaming or removing them. Prefer optional keywords to new required arguments.
+- Preserve units and coordinate conventions. In particular, point/batch queries
+  use kilometres and degrees, while trajectory helpers accept metres and an
+  explicit radians/degrees choice.
+- Preserve identifier spelling: `get_density_trajectory_optimised` and
+  `get_density_batch_optimized` are existing public names.
+- Keep interpolation warnings visible unless a reviewed change alters their
+  meaning. Do not use log-level changes to hide a failing query.
+- Underscore-prefixed implementation helpers are not a stable downstream API.
+  Files included by the main module share its namespace; they do not need exports
+  merely to call one another.
 
-```bash
-# Strict CI gate - should pass in ≈45 s without any network access
-julia --project=. -e 'include("test/test_offline.jl")'
+## Changes requiring design review
 
-# Full suite - most WAM-IPE / GEOS-FP testsets self-skip without network
-julia --project=. -e 'include("test/runtests.jl")'
-```
+Cache and NetCDF concurrency changes need explicit ownership and lifetime checks.
+The current implementation already uses per-thread dataset handles; that alone
+is not a general guarantee about the underlying C libraries. Review handle use,
+locking and cleanup together, and exercise concurrent access before making a
+thread-safety claim.
 
-## Building the docs site locally
+The `get_density_batch_optimized` and `get_density_batch_parallel` entry points
+currently delegate to `get_density_batch`. Preserve their call signatures when
+changing the shared implementation. Review trajectory grouping separately rather
+than assuming that every entry point has a distinct algorithm.
 
-```bash
-julia --project=docs -e '
-  using Pkg
-  Pkg.develop(PackageSpec(path="."))
-  Pkg.instantiate()
-  include("docs/make.jl")
-'
-```
+A lighter GEOS altitude-bounds lookup must retain the existing missing-height and
+hydrostatic-fill behaviour. Propose its validation before replacing the current
+full-field loading path.
 
-Then open `docs/build/index.html` in a browser. The docs environment is
-tracked in `docs/Project.toml`.
+## Submit the change
 
-## Style conventions
-
-- **Julia 1.11 or later.** The `Project.toml` declares `julia = "1.11"`.
-- **`Base.@kwdef` structs** for all interpolation configuration types -
-  this generates keyword constructors and lets the docs show field
-  defaults.
-- **British English in prose, mixed spelling in identifiers.** The
-  trajectory family is `get_density_trajectory_optimised` (British); the
-  batch family is `get_density_batch_optimized` (American). Both are
-  deliberate - do not rename one to match the other. The same rule applies
-  inside docstrings: mirror the function name's spelling and write
-  surrounding prose in British English.
-- **No new dependencies without discussion.** Adding a package to
-  `Project.toml` widens the install footprint; please raise it in the
-  issue thread first.
-- **Do not run tests via `Pkg.test()`.** The root `Project.toml` has no
-  `[extras]`/`[targets]` section by design - the test environment is kept
-  in `test/Project.toml` instead. Use `julia --project=test ...` as shown
-  above.
-- **Do not silence `@warn` with `@debug`.** The Tier 1-3 fixes made a
-  deliberate choice to surface interpolation errors at the default log
-  level - please don't undo that without a discussion.
-
-## Public API stability
-
-The package is not yet at a 1.0 release, so breaking changes are
-technically allowed. As a courtesy:
-
-- Don't rename or remove an exported symbol without deprecation.
-- Don't add a required positional argument to a public function - use a
-  keyword with a default instead.
-- Don't change the semantic meaning of an existing keyword (e.g. flipping
-  `angles_in_deg=false` from "radians expected" to "degrees expected").
-
-The internal `_`-prefixed exports (`_vectorized_interp3_linear`,
-`_vectorized_interp4`, `_batch_process_time_buckets`) are **not** part of
-the stable API. They are exported only so internal callers across files
-can use them; signature or behaviour may change between releases.
-
-## Do NOT attempt without maintainer sign-off
-
-The following items require an architectural decision, not a mechanical
-patch. **Please list them in your issue thread and ask for maintainer
-sign-off before implementing them.** They are listed here so contributors
-are aware they exist.
-
-### 1. NetCDF / HDF5 thread-safety across `Threads.@threads` batch calls
-
-The underlying C libraries may not support concurrent reads on shared
-dataset handles. Two safe approaches exist:
-
-- a **global read lock**, which loses parallelism but is straightforward;
-- **per-thread dataset handles**, which preserve parallelism but require a
-  larger refactor around the in-process dataset pool.
-
-The maintainer needs to choose which approach to take before any
-implementation work is done. Do not just add `lock(...) do ... end`
- wrappers around the dataset reads - that will deadlock in patterns used
-by `get_density_batch_parallel`.
-
-### 2. Consolidating `get_density_batch` / `get_density_trajectory` onto the `_optimised` / `_optimized` grouped-by-file-pair logic
-
-The package currently maintains two parallel implementations: the
-documented public `get_density_batch` and `get_density_trajectory`
-functions, and the time-bucket-grouped `get_density_batch_optimized`,
-`get_density_batch_parallel`, and `get_density_trajectory_optimised`
-variants. Folding the former into the latter would reduce duplication but
-changes the performance characteristics of documented public functions
-(some callers rely on the per-call cost profile of the unoptimised path
-for benchmarking). This should be reviewed before the consolidation is
-made.
-
-### 3. A lightweight GEOS metadata-only loader for `_geos_altitude_bounds`
-
-The current `_geos_altitude_bounds` loads the full `T`/`QV`/`H` arrays for
-each bracketing GEOS-FP file just to read the `z` bounds. A new
-metadata-only loader mirroring `_load_grid_metadata` - reading only the
-coordinate axes and the `H` field - would save significant I/O. The
-difficulty is that the GEOS `H` field can contain missing values along
-the vertical profile, and the current fallback is the hydrostatic fill in
-`_hydrostatic_fill!`. The lightweight loader needs to handle that fallback
-path safely before it can replace the full-array load.
-
-## License
-
-The package is released under the MIT license - see `LICENSE` at the
-repository root. By contributing, you agree that your contributions will
-be licensed under the same terms.
+Describe the failure or user need, the resulting behaviour, and the exact checks
+run. Include the Julia version and identify any live-data skips. Keep unrelated
+cleanup in separate pull requests. Contributions use the repository's MIT license.

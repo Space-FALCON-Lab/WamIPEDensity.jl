@@ -1,17 +1,19 @@
 # WFS Workflows
 
-The following examples are the independent `WFS` workflows you can run directly. They are useful when you want ionosphere variables, sample dumps, or all-product reports without going through a full SpaceAGORA simulation.
+This page retains examples for the independent `WFS` package. They are useful when you want ionosphere variables, sample dumps, or all-product reports without going through a full SpaceAGORA simulation.
 
 These tools require a separate installation of the higher-level `WFS` package
 and its environment. Installing WamIPEDensity does not install `WFS`. Run the
 examples only after activating that separate environment, with `WFS` available.
-They use a `cache` folder beside the working directory.
+The examples set `cache_dir="cache"`, relative to the Julia working directory.
+The WFS package revision and installation instructions are not supplied here;
+obtain them from its maintainer before treating these examples as a reproducible
+workflow. WamIPEDensity's test suite does not qualify this external API.
 
 ## Ion temperature from forecast data
 
 ```julia
-print("\033c")
-using Revise, Dates, WFS
+using Dates, WFS
 
 itp = WFS.WFSInterpolator(
     product="wfs",
@@ -28,8 +30,7 @@ value = WFS.get_value(itp, dt, -153.24, -33.4, 400.0)
 ## Electron temperature from nowcast data
 
 ```julia
-print("\033c")
-using Revise, Dates, WFS
+using Dates, WFS
 
 itp = WFS.WFSInterpolator(
     product="wrs",
@@ -46,8 +47,7 @@ value = WFS.get_value(itp, dt, -153.24, -33.4, 400.0)
 ## Sample dump from `ipe05`
 
 ```julia
-print("\033c")
-using Revise, WFS, Dates
+using WFS, Dates
 
 itp = WFS.WFSInterpolator(product="wfs", stream="ipe05", cache_dir="cache")
 dt = DateTime(2025, 9, 28, 18, 12, 22)
@@ -58,8 +58,7 @@ rep = WFS.dump_sample(itp, dt, 16, 16, 700.0)
 ## Sample dump from `ipe10`
 
 ```julia
-print("\033c")
-using Revise, WFS, Dates
+using WFS, Dates
 
 itp = WFS.WFSInterpolator(product="wfs", stream="ipe10", cache_dir="cache")
 dt = DateTime(2025, 9, 29, 18, 12, 22)
@@ -68,8 +67,7 @@ rep = WFS.dump_sample(itp, dt, 16, 16, 700.0)
 ```
 
 ```julia
-print("\033c")
-using Revise, WFS, Dates
+using WFS, Dates
 
 itp = WFS.WFSInterpolator(product="wfs", stream="ipe10", cache_dir="cache")
 dt = DateTime(2025, 9, 28, 18, 10, 00)
@@ -80,7 +78,6 @@ rep = WFS.dump_sample(itp, dt, 16, 16, 700.0)
 ## Dump every configured report
 
 ```julia
-print("\033c")
 using WFS, Dates
 
 dt = DateTime(2025, 9, 28, 18, 20, 00)

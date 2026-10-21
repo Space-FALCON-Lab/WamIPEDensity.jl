@@ -9,7 +9,7 @@ accuracy or availability.
 |---|---|---|---|---|
 | WAM-IPE | `WAMInterpolator` | unbounded; practically LEO altitudes | NOAA WAM-IPE on Amazon S3 (`noaa-nws-wam-ipe-pds`, us-east-1) | `./cache` |
 | GEOS-FP | `GEOSFPInterpolator` | `0.0` - `70.0` km (configurable via `min_alt_km` / `max_alt_km`) | NASA NCCS GEOS-FP data-share portal over HTTP | `./cache_geosfp` |
-| NRLMSISE-00 | `NRLMSISEInterpolator` | `0.0` - `100.0` km (configurable) | Empirical model + space-weather indices from `SpaceIndices.jl` | (none; `≈/.julia/...` for indices) |
+| NRLMSISE-00 | `NRLMSISEInterpolator` | `0.0` - `100.0` km (configurable) | Empirical model + space-weather indices from `SpaceIndices.jl` | (none; `~/.julia/...` for indices) |
 | Hybrid | `HybridDensityInterpolator` | 0 km - LEO (routes by altitude) | Combination of the above | Combination of the above |
 
 ---
@@ -22,10 +22,10 @@ published openly on the Amazon S3 bucket `noaa-nws-wam-ipe-pds` in the
 `us-east-1` region. WAM-IPE output is published in two product streams:
 
 - **`wrs`** - **WAM-IPE Real-time Stream** (nowcast), initialised from
-  near-real-time data assimilation. **This is the primary product** and the
-  one you should use for operational work.
+  near-real-time data assimilation.
 - **`wfs`** - **WAM-IPE Forecast Stream**, initialised from NCEP/GFS.
-  A fallback when WRS data is unavailable.
+  Select the stream deliberately for the study. A WFS request can fall back to
+  WRS files; a WRS request tries WRS cycles without switching to WFS.
 
 Each stream is published at a 10-minute output cadence. The package finds the
 two bracketing 10-minute files for a requested `DateTime`, downloads them
@@ -53,8 +53,8 @@ trying the most recent cycle first and falling back to earlier cycles:
 | 21:00 - 23:59 | 18z (today) -> 12z -> 06z -> 00z |
 
 This means a query at 12:00 UTC uses the 06z cycle (whose files cover 09:10-14:50),
-not the 12z cycle (which only starts at 15:10). The query always gets the
-most-recent available nowcast data with no gaps.
+not the 12z cycle (which only starts at 15:10). The resolver tries its preferred cycles in order. It raises an error when it
+cannot find the required files; this does not guarantee gap-free coverage.
 
 ### Versions and `_VERSION_WINDOWS`
 
@@ -74,13 +74,10 @@ extending `v1.1` to `21:09:59`. This boundary was **not** verified against
 the actual NOAA WAM-IPE v1.1->v1.2 cutover. Verify against NOAA's records
 before relying on data near that timestamp.
 
-You can override the auto-selected version by passing `root_prefix` to
-`WAMInterpolator`:
-
-```julia
-itp = WAMInterpolator(product="wfs", root_prefix="v1.1",
-                      varname="den", interpolation=:sciml)
-```
+The `root_prefix` constructor field does **not** override this mapping in the
+current implementation. File-key construction selects the version from each
+file timestamp. The field is retained in the configuration and file-pair cache
+identity; setting it to `"v1.1"` will not force a later query to use v1.1 files.
 
 ### Interpolation modes
 
@@ -106,7 +103,7 @@ clamp to the edge with an `@debug` log message).
 
 ## GEOS-FP
 
-`GEOS-FP` is NASA GMAO's modern-era retrospective reanalysis. The package
+`GEOS-FP` provides NASA GMAO atmospheric products. The package
 uses it for lower-atmosphere density estimates (0-70 km by default). Files
 are downloaded as raw `.nc4` from
 `https://portal.nccs.nasa.gov/datashare/gmao/geos-fp/das/...` via plain HTTP
@@ -212,10 +209,9 @@ msis_wide = NRLMSISEInterpolator(min_alt_km = 0.0, max_alt_km = 500.0)
 rho       = get_density(msis_wide, dt, 45.0, -75.0, 400.0)
 ```
 
-This default was a deliberate choice - above ≈100 km the empirical model is
-less reliable than WAM-IPE - but it occasionally surprises users who assume
-`get_density(msis, ..., 400)` will succeed. Set the altitude bounds for the
-intended use case explicitly, as in the example above.
+These bounds are software configuration limits, not a comparison of model
+accuracy. Set them explicitly for the intended query range and establish the
+model's suitability separately.
 
 ### Module-level `SpaceIndices.init()` guard
 
@@ -284,10 +280,14 @@ leo        = leo_config()         # msis 0-130 km, GEOS 0-70 km, msis_max_alt_km
 lower_atmo = lower_atmo_config()  # msis 0-100 km, GEOS 0-70 km, msis_max_alt_km=70.0
 ```
 
-`leo_config` is intended for LEO-drag calculations: NRLMSISE-00 covers
-70-130 km and WAM-IPE covers everything above. `lower_atmo_config` is
-optimised for lower-atmosphere work: GEOS-FP covers 0-70 km and NRLMSISE-00
-covers 70-100 km.
+`leo_config()` routes above 130 km to WAM-IPE. At or below 130 km, the
+dynamic GEOS bounds decide between GEOS-FP and NRLMSISE-00.
+
+`lower_atmo_config()` routes **above 70 km directly to WAM-IPE**, including
+an 80 km query. Its MSIS object allows queries up to 100 km, but that object
+bound does not override the hybrid routing threshold. At or below 70 km,
+the same dynamic GEOS-bound decision applies. Neither preset guarantees a
+fixed GEOS/MSIS crossover or an offline query.
 
 ### Constructing a custom hybrid configuration
 
