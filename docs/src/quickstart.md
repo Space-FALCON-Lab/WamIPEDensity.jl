@@ -41,7 +41,6 @@ using WamIPEDensity
 
 itp = WAMInterpolator(
     product="wfs",
-    root_prefix="v1.2",
     varname="den",
     interpolation=:sciml,
 )
@@ -54,13 +53,17 @@ alt_km = 400.0
 rho = get_density(itp, dt, lat_deg, lon_deg, alt_km)
 ```
 
+`rho` is density in kg/m³. The first query may download the required NOAA
+files; archive or network failures can prevent a result. The query timestamp
+selects the archive version, as described in [Backends](backends.md).
+
 ## Nowcast product
 
 ```julia
 using Dates
 using WamIPEDensity
 
-itp = WAMInterpolator(product="wrs", root_prefix="v1.2", varname="den", interpolation=:sciml)
+itp = WAMInterpolator(product="wrs", varname="den", interpolation=:sciml)
 dt = DateTime(2025, 9, 30, 18, 12, 22)
 
 rho = get_density(itp, dt, -33.4, -153.24, 400.0)
