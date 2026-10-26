@@ -5,7 +5,8 @@ This page retains examples for the independent `WFS` package. They are useful wh
 These tools require a separate installation of the higher-level `WFS` package
 and its environment. Installing WamIPEDensity does not install `WFS`. Run the
 examples only after activating that separate environment, with `WFS` available.
-The examples set `cache_dir="cache"`, relative to the Julia working directory.
+The `WFSInterpolator` examples set `cache_dir="cache"`, relative to the Julia
+working directory.
 The WFS package revision and installation instructions are not supplied here;
 obtain them from its maintainer before treating these examples as a reproducible
 workflow. WamIPEDensity's test suite does not qualify this external API.
