@@ -52,6 +52,11 @@ WAM-IPE and GEOS-FP queries download data when it is missing from the local cach
 MSIS may need space-weather indices. A successful software test is not a validation
 of a forecast or of a model for a particular mission.
 
+## Contributors
+
+- [Giusy Falcone](https://github.com/gfalcon2)
+- [Tarun (Bourbon8464)](https://github.com/Bourbon8464)
+
 ## Build the documentation
 
 The documentation sources live in `docs/`. From the repository root, build them
