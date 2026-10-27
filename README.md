@@ -55,7 +55,7 @@ of a forecast or of a model for a particular mission.
 ## Contributors
 
 - [Giusy Falcone](https://github.com/gfalcon2)
-- [Tarun (Bourbon8464)](https://github.com/Bourbon8464)
+- [Tarun Ramireddy](https://github.com/Bourbon8464)
 
 ## Build the documentation
 
