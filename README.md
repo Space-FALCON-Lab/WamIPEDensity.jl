@@ -41,7 +41,7 @@ The changelog below describes this historical branch.
 ## Contributors
 
 - [Giusy Falcone](https://github.com/gfalcon2)
-- [Tarun (Bourbon8464)](https://github.com/Bourbon8464)
+- [Tarun Ramireddy](https://github.com/Bourbon8464)
 
 ## Changelog:
 ### Updates to Structure and Exports:
